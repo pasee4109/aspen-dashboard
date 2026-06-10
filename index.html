@@ -48,7 +48,7 @@ th{color:var(--muted);font-weight:600;font-size:12px}
 .cz-tf{font-size:16px;font-weight:700}
 .cz-val{margin-left:auto;font-size:20px;font-weight:700}
 .cz-bar{height:12px;border-radius:6px;position:relative;margin:8px 0 14px}
-.cz-bar.stoch{background:linear-gradient(90deg,var(--green) 0 3%,var(--border) 3% 97%,var(--red) 97% 100%)}
+.cz-bar.stoch{background:linear-gradient(90deg,var(--red) 0 3%,var(--border) 3% 97%,var(--green) 97% 100%)}
 .cz-bar.prob{background:linear-gradient(90deg,var(--red) 0 3%,var(--border) 3% 97%,var(--green) 97% 100%)}
 .cz-pin{position:absolute;top:-4px;width:4px;height:20px;border-radius:2px;background:var(--text);transform:translateX(-50%)}
 .cz-line{font-size:12.5px;color:var(--muted);margin:5px 0;line-height:1.5}
@@ -76,7 +76,7 @@ footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--border);color
 
 <section><h2>🌡️ Climax Zone <span class="sub">(Week / Day / Hour — จากชุด VZO)</span></h2>
   <div class="grid cz-grid" id="czBox"></div>
-  <div class="sub" style="margin-top:8px">🔴 Buying Climax = แรงซื้อสุดขีด (เน้นขาย) • 🟢 Selling Climax = แรงขายสุดขีด (เน้นซื้อ) • ตัวเลข "ต้องวอลุ่มอีก" คำนวณจากสูตร VZO/StochVol ในไฟล์ aspen จริง</div>
+  <div class="sub" style="margin-top:8px">🔴 Buying Climax = ค่าเข้าโซนล่าง ≤3 (เน้นขาย) • 🟢 Selling Climax = ค่าเข้าโซนบน ≥97 (เน้นซื้อ) • ตัวเลข "ต้องวอลุ่มอีก" คำนวณจากสูตร VZO/StochVol ในไฟล์ aspen จริง</div>
 </section>
 
 <section><h2>📈 ดัชนี Intraday <span class="sub">(สะสมรายชั่วโมง)</span></h2>
@@ -157,7 +157,7 @@ async function load(){
       <div class="cz-head"><span class="cz-tf">${c.tf}</span>${stBadge}${zone}
         <span class="cz-val">${shown==null?'--':shown.toFixed(1)}${isProb?'%':''}</span></div>
       <div class="cz-bar ${isProb?'prob':'stoch'}"><div class="cz-pin" style="left:${pos}%"></div></div>
-      <div class="cz-line">${isProb?'Climax prob (≤3% = Buying / ≥97% = Selling)':'StochVol (≥97 = Buying / ≤3 = Selling)'} • ${c.trend||''}</div>
+      <div class="cz-line">${isProb?'Climax prob (≤3% = Buying / ≥97% = Selling)':'StochVol (≤3 = Buying / ≥97 = Selling)'} • ${c.trend||''}</div>
       ${c.system?`<div class="cz-line">ระบบ: <b>${c.system}</b></div>`:''}
       <div class="cz-line">ราคา <b>${fmt(c.price_live,1)}</b> • จุดสลับฝั่ง <b>${fmt(c.price_flip,1)}</b> • วอลุ่มแท่งนี้ <b>${fmt0(c.vol_now)}</b></div>
       ${(c.scenarios||[]).map(x=>`<div class="cz-line">• ${x}</div>`).join('')}
