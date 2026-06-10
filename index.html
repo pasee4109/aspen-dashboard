@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0d1117">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Aspen Market Dashboard — SET / S50</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;
+--green:#3fb950;--red:#f85149;--amber:#d29922;--blue:#58a6ff;--purple:#bc8cff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;padding:16px;max-width:1150px;margin:0 auto}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#1f6feb,#3fb950);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}
+h1{font-size:20px}.sub{color:var(--muted);font-size:13px}
+.live{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(63,185,80,.12);color:var(--green);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.grid{display:grid;gap:14px}
+.cards{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.card .k{color:var(--muted);font-size:12px;margin-bottom:6px}
+.card .v{font-size:22px;font-weight:700}
+.card .s{font-size:12px;color:var(--muted);margin-top:4px}
+.up{color:var(--green)}.down{color:var(--red)}.flat{color:var(--muted)}
+section{margin-top:28px}
+section>h2{font-size:15px;margin-bottom:10px;color:var(--blue)}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;height:300px;position:relative}
+.flow-grid{grid-template-columns:1fr 1fr}
+.cz-grid{grid-template-columns:repeat(auto-fit,minmax(310px,1fr))}
+@media(max-width:760px){.flow-grid{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:12px}
+.sym{font-weight:700}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.b-buy{background:rgba(63,185,80,.15);color:var(--green)}
+.b-sell{background:rgba(248,81,73,.15);color:var(--red)}
+.b-wait{background:rgba(210,153,34,.15);color:var(--amber)}
+.b-zone{background:rgba(248,81,73,.25);color:var(--red);animation:pulse 1.6s infinite}
+.b-zone.g{background:rgba(63,185,80,.25);color:var(--green)}
+.cz-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.cz-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cz-tf{font-size:16px;font-weight:700}
+.cz-val{margin-left:auto;font-size:20px;font-weight:700}
+.cz-bar{height:12px;border-radius:6px;position:relative;margin:8px 0 14px}
+.cz-bar.stoch{background:linear-gradient(90deg,var(--green) 0 3%,var(--border) 3% 97%,var(--red) 97% 100%)}
+.cz-bar.prob{background:linear-gradient(90deg,var(--red) 0 3%,var(--border) 3% 97%,var(--green) 97% 100%)}
+.cz-pin{position:absolute;top:-4px;width:4px;height:20px;border-radius:2px;background:var(--text);transform:translateX(-50%)}
+.cz-line{font-size:12.5px;color:var(--muted);margin:5px 0;line-height:1.5}
+.cz-line b{color:var(--text)}
+.toggle{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-left:10px;vertical-align:middle}
+.toggle button{background:none;border:none;color:var(--muted);padding:4px 12px;font-size:12px;cursor:pointer}
+.toggle button.on{background:var(--blue);color:#fff}
+select{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;margin-left:10px}
+footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;text-align:center}
+.stale{background:rgba(210,153,34,.12);color:var(--amber)}
+.dot-stale{background:var(--amber);animation:none}
+#err{display:none;background:rgba(248,81,73,.12);color:var(--red);padding:12px;border-radius:10px;margin-bottom:14px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">A</div>
+  <div><h1>Aspen Market Dashboard</h1>
+  <div class="sub">ข้อมูลจาก AspenRTD • อัปเดตทุกชั่วโมงช่วงตลาดเปิด</div></div>
+  <div class="live" id="liveBadge"><span class="dot" id="liveDot"></span><span id="liveTxt">LIVE</span></div>
+</header>
+<div id="err"></div>
+
+<section><h2>📊 ภาพรวม SET / S50</h2><div class="grid cards" id="cards"></div></section>
+
+<section><h2>🌡️ Climax Zone <span class="sub">(Week / Day / Hour — จากชุด VZO)</span></h2>
+  <div class="grid cz-grid" id="czBox"></div>
+  <div class="sub" style="margin-top:8px">🔴 Buying Climax = แรงซื้อสุดขีด (เน้นขาย) • 🟢 Selling Climax = แรงขายสุดขีด (เน้นซื้อ) • ตัวเลข "ต้องวอลุ่มอีก" คำนวณจากสูตร VZO/StochVol ในไฟล์ aspen จริง</div>
+</section>
+
+<section><h2>📈 ดัชนี Intraday <span class="sub">(สะสมรายชั่วโมง)</span></h2>
+  <div class="chart-card"><canvas id="idxChart"></canvas></div></section>
+
+<section><h2>🗓️ ดัชนี EOD
+  <span class="toggle" id="eodTog"><button data-m="6" class="on">6 เดือน</button><button data-m="12">1 ปี</button></span></h2>
+  <div class="chart-card"><canvas id="eodChart"></canvas></div></section>
+
+<section><h2>🤝 Party Flow สะสม (TFEX S50)</h2>
+  <div class="grid cards" id="pfCards"></div>
+  <div class="chart-card" style="margin-top:12px"><canvas id="pfChart"></canvas></div></section>
+
+<section><h2>💰 Top Inflow / Outflow (SET100)</h2>
+  <div class="grid flow-grid">
+    <div class="card"><table id="tblIn"><thead><tr><th>หุ้น</th><th>สัญญาณ</th><th></th></tr></thead><tbody></tbody></table></div>
+    <div class="card"><table id="tblOut"><thead><tr><th>หุ้น</th><th>สัญญาณ</th><th></th></tr></thead><tbody></tbody></table></div>
+  </div></section>
+
+<section><h2>📦 Open Interest — S50 Futures vs SSF
+  <select id="oiSel"><option value="__total__">รวมทั้งตลาด (Sum OI)</option></select></h2>
+  <div class="chart-card"><canvas id="oiChart"></canvas></div>
+  <div class="sub" style="margin-top:8px" id="oiNote"></div></section>
+
+<section><h2>📒 S50 Daily Metrics <span class="sub" id="lgDate"></span></h2>
+  <div class="grid cards" id="lgCards"></div></section>
+
+<footer id="foot">Aspen Dashboard — สร้างจาก aspen 24hr.xlsm (READ-ONLY)</footer>
+
+<script src="data.js"></script>
+<script>
+const fmt=(n,d=2)=>n==null?'--':Number(n).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmt0=n=>n==null?'--':Number(n).toLocaleString('th-TH',{maximumFractionDigits:0});
+const pct=n=>n==null?'--':((n>0?'+':'')+(n*100).toFixed(2)+'%');
+const cls=n=>n==null?'flat':n>0?'up':n<0?'down':'flat';
+const GRID={color:'#21262d'},MUT={color:'#8b949e'};
+const card=(k,v,s,c='')=>`<div class="card"><div class="k">${k}</div><div class="v ${c}">${v}</div><div class="s">${s}</div></div>`;
+const thDate=s=>{if(!s)return'';const t=new Date(s);return isNaN(t)?s:t.toLocaleDateString('th-TH',{day:'numeric',month:'short'})};
+
+async function load(){
+  let d;
+  try{
+    const r=await fetch('data.json?t='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    d=await r.json();
+  }catch(e){
+    if(window.__DATA__){d=window.__DATA__;}
+    else{const el=document.getElementById('err');el.style.display='block';el.textContent='โหลด data.json ไม่ได้: '+e.message;return;}
+  }
+  const gen=new Date(d.generated_at), ageH=(Date.now()-gen.getTime())/36e5;
+  if(ageH>3){
+    document.getElementById('liveBadge').classList.add('stale');
+    document.getElementById('liveDot').classList.add('dot-stale');
+    document.getElementById('liveTxt').textContent='STALE '+ageH.toFixed(0)+'h';
+  }
+
+  // ---------- overview cards ----------
+  const s=d.indices?.set||{},f=d.indices?.s50||{};
+  let h='';
+  h+=card('SET Index',fmt(s.last),`${pct(s.chg)} • H ${fmt(s.high)} / L ${fmt(s.low)}`,cls(s.chg));
+  h+=card('S50 (COI)',fmt(f.last,1),`${pct(f.chg)} • H ${fmt(f.high,1)} / L ${fmt(f.low,1)}`,cls(f.chg));
+  h+=card('SET %Chg 1W',pct(s.chg_1w),'เทียบสัปดาห์ก่อน',cls(s.chg_1w));
+  h+=card('S50 %Chg 1W',pct(f.chg_1w),'เทียบสัปดาห์ก่อน',cls(f.chg_1w));
+  if(d.mkt_sent)h+=card('Mkt Sentiment',d.mkt_sent,'จากชีต SET100',d.mkt_sent==='Y'?'up':'flat');
+  if(d.total_flow!=null)h+=card('Flow รวม',fmt0(d.total_flow/1e6)+' M','ล้านบาท',cls(d.total_flow));
+  document.getElementById('cards').innerHTML=h;
+
+  // ---------- Climax Zone ----------
+  document.getElementById('czBox').innerHTML=(d.climax||[]).map(c=>{
+    const isProb=c.kind==='prob';
+    const shown=isProb?(c.value*100):c.value;
+    const pos=Math.max(0,Math.min(100,shown));
+    const zone=c.in_zone==='buying'?'<span class="badge b-zone">🔴 BUYING CLIMAX — เน้นขาย</span>'
+              :c.in_zone==='selling'?'<span class="badge b-zone g">🟢 SELLING CLIMAX — เน้นซื้อ</span>':'';
+    const st=(c.status||'').split(' ')[0];
+    const stBadge=st?`<span class="badge ${st==='Close'?'b-sell':st==='Wait'?'b-wait':'b-buy'}">${c.status}</span>`:'';
+    return `<div class="cz-card">
+      <div class="cz-head"><span class="cz-tf">${c.tf}</span>${stBadge}${zone}
+        <span class="cz-val">${shown==null?'--':shown.toFixed(1)}${isProb?'%':''}</span></div>
+      <div class="cz-bar ${isProb?'prob':'stoch'}"><div class="cz-pin" style="left:${pos}%"></div></div>
+      <div class="cz-line">${isProb?'Climax prob (≤3% = Buying / ≥97% = Selling)':'StochVol (≥97 = Buying / ≤3 = Selling)'} • ${c.trend||''}</div>
+      ${c.system?`<div class="cz-line">ระบบ: <b>${c.system}</b></div>`:''}
+      <div class="cz-line">ราคา <b>${fmt(c.price_live,1)}</b> • จุดสลับฝั่ง <b>${fmt(c.price_flip,1)}</b> • วอลุ่มแท่งนี้ <b>${fmt0(c.vol_now)}</b></div>
+      ${(c.scenarios||[]).map(x=>`<div class="cz-line">• ${x}</div>`).join('')}
+    </div>`;
+  }).join('')||'<div class="sub">ไม่พบข้อมูล Climax</div>';
+
+  // ---------- Intraday chart ----------
+  const hist=(d.history||[]).filter(r=>r.set_last!=null||r.s50_last!=null);
+  if(hist.length>=2){
+    new Chart(document.getElementById('idxChart'),{type:'line',data:{
+      labels:hist.map(r=>{const t=new Date(r.ts);return t.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});}),
+      datasets:[{label:'SET',data:hist.map(r=>r.set_last),borderColor:'#58a6ff',backgroundColor:'rgba(88,166,255,.08)',fill:true,tension:.3,pointRadius:0,yAxisID:'y'},
+        {label:'S50',data:hist.map(r=>r.s50_last),borderColor:'#3fb950',tension:.3,pointRadius:0,yAxisID:'y1'}]},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{labels:MUT}},spanGaps:true,
+        scales:{x:{ticks:{...MUT,maxTicksLimit:8},grid:GRID},y:{position:'left',ticks:{color:'#58a6ff'},grid:GRID},
+          y1:{position:'right',ticks:{color:'#3fb950'},grid:{drawOnChartArea:false}}}}});
+  }else{
+    document.getElementById('idxChart').closest('.chart-card').innerHTML='<div class="sub" style="padding:20px">ยังไม่มี history พอ — จะสะสมอัตโนมัติทุกรอบที่รัน</div>';
+  }
+
+  // ---------- EOD chart ----------
+  const pf=d.partyflow||{};
+  let eodChart=null;
+  function drawEod(months){
+    const n=months*22;
+    const dates=(pf.dates||[]).slice(-n);
+    const s50=(pf.s50_close||[]).slice(-n), set=(pf.set_index||[]).slice(-n);
+    if(eodChart)eodChart.destroy();
+    eodChart=new Chart(document.getElementById('eodChart'),{type:'line',data:{labels:dates.map(thDate),
+      datasets:[{label:'S50 close',data:s50,borderColor:'#3fb950',tension:.25,pointRadius:0,yAxisID:'y'},
+        {label:'SET',data:set,borderColor:'#58a6ff',tension:.25,pointRadius:0,yAxisID:'y1'}]},
+      options:{responsive:true,maintainAspectRatio:false,spanGaps:true,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{labels:MUT}},
+        scales:{x:{ticks:{...MUT,maxTicksLimit:9},grid:GRID},y:{ticks:{color:'#3fb950'},grid:GRID},
+          y1:{position:'right',ticks:{color:'#58a6ff'},grid:{drawOnChartArea:false}}}}});
+  }
+  if((pf.dates||[]).length>=2){
+    drawEod(6);
+    document.getElementById('eodTog').addEventListener('click',e=>{
+      if(e.target.tagName!=='BUTTON')return;
+      document.querySelectorAll('#eodTog button').forEach(b=>b.classList.remove('on'));
+      e.target.classList.add('on');drawEod(+e.target.dataset.m);
+    });
+  }
+
+  // ---------- Party Flow ----------
+  const pl=pf.latest||{};
+  const pcard=(k,net,cum)=>card(k,(net>0?'+':'')+fmt0(net),`สะสม ${(cum>0?'+':'')+fmt0(cum)} สัญญา`,cls(net));
+  document.getElementById('pfCards').innerHTML=
+    pcard('กองทุน (Inst)',pl.tfex_net_inst,(pf.cum_inst||[]).filter(x=>x!=null).slice(-1)[0])+
+    pcard('ต่างชาติ (Foreign)',pl.tfex_net_foreign,(pf.cum_foreign||[]).filter(x=>x!=null).slice(-1)[0])+
+    pcard('รายย่อย (Local)',pl.tfex_net_local,(pf.cum_local||[]).filter(x=>x!=null).slice(-1)[0])+
+    card('ข้อมูลถึง',pl.date||'--',`S50 ${fmt(pl.s50_close,1)} • VWAP ${fmt(pl.s50_vwap,1)}`);
+  if((pf.dates||[]).length>=2){
+    new Chart(document.getElementById('pfChart'),{type:'line',data:{labels:(pf.dates||[]).map(thDate),
+      datasets:[{label:'กองทุน',data:pf.cum_inst,borderColor:'#58a6ff',tension:.25,pointRadius:0,yAxisID:'y'},
+        {label:'ต่างชาติ',data:pf.cum_foreign,borderColor:'#bc8cff',tension:.25,pointRadius:0,yAxisID:'y'},
+        {label:'รายย่อย',data:pf.cum_local,borderColor:'#d29922',tension:.25,pointRadius:0,yAxisID:'y'},
+        {label:'S50',data:pf.s50_close,borderColor:'#3fb950',borderDash:[4,3],tension:.25,pointRadius:0,yAxisID:'y1'}]},
+      options:{responsive:true,maintainAspectRatio:false,spanGaps:true,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{labels:MUT}},
+        scales:{x:{ticks:{...MUT,maxTicksLimit:9},grid:GRID},y:{ticks:MUT,grid:GRID,title:{display:true,text:'สะสม (สัญญา)',color:'#8b949e'}},
+          y1:{position:'right',ticks:{color:'#3fb950'},grid:{drawOnChartArea:false}}}}});
+  }
+
+  // ---------- flow tables ----------
+  const row=x=>{
+    const buy=/RCMD\s*=\s*Buy/i.test(x.text),sell=/RCMD\s*=\s*Sell/i.test(x.text);
+    const b=buy?'<span class="badge b-buy">BUY</span>':sell?'<span class="badge b-sell">SELL</span>':'';
+    return `<tr><td class="sym">${x.symbol}</td><td>${x.text}</td><td>${b}</td></tr>`;};
+  document.querySelector('#tblIn tbody').innerHTML=(d.inflow||[]).map(row).join('')||'<tr><td colspan="3" class="sub">--</td></tr>';
+  document.querySelector('#tblOut tbody').innerHTML=(d.outflow||[]).map(row).join('')||'<tr><td colspan="3" class="sub">--</td></tr>';
+  document.querySelector('#tblIn').closest('.card').insertAdjacentHTML('afterbegin','<div class="k" style="color:var(--green);font-weight:700;margin-bottom:8px">▲ Top Inflow</div>');
+  document.querySelector('#tblOut').closest('.card').insertAdjacentHTML('afterbegin','<div class="k" style="color:var(--red);font-weight:700;margin-bottom:8px">▼ Top Outflow</div>');
+
+  // ---------- OI ----------
+  const oi=d.oi||{};
+  let oiChart=null;
+  const sel=document.getElementById('oiSel');
+  (oi.stocks||[]).forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;sel.appendChild(o);});
+  function drawOi(sym){
+    const labels=(oi.dates||[]).map(thDate);
+    let ds,note;
+    if(sym==='__total__'){
+      ds=[{type:'bar',label:'Sum OI (มูลค่า)',data:oi.total,backgroundColor:'rgba(88,166,255,.45)',yAxisID:'y'},
+          {type:'line',label:'S50',data:oi.s50,borderColor:'#3fb950',tension:.25,pointRadius:0,yAxisID:'y1',spanGaps:true}];
+      note='Sum OI รวมทั้งตลาด เทียบราคา S50 — เลือกหุ้นจาก dropdown เพื่อดู OI vs ราคารายตัว';
+    }else{
+      ds=[{type:'bar',label:'OI '+sym,data:(oi.oi||{})[sym]||[],backgroundColor:'rgba(188,140,255,.45)',yAxisID:'y'},
+          {type:'line',label:'ราคา '+sym,data:(oi.price||{})[sym]||[],borderColor:'#3fb950',tension:.25,pointRadius:0,yAxisID:'y1',spanGaps:true}];
+      note=`OI (แท่ง, สัญญา SSF) vs ราคา ${sym} (เส้น) — OI ขึ้นพร้อมราคาขึ้น = เปิด Long เพิ่ม / OI ขึ้นราคาลง = เปิด Short เพิ่ม`;
+    }
+    if(oiChart)oiChart.destroy();
+    oiChart=new Chart(document.getElementById('oiChart'),{data:{labels,datasets:ds},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{labels:MUT}},
+        scales:{x:{ticks:{...MUT,maxTicksLimit:9},grid:GRID},y:{ticks:MUT,grid:GRID},
+          y1:{position:'right',ticks:{color:'#3fb950'},grid:{drawOnChartArea:false}}}}});
+    document.getElementById('oiNote').textContent=note;
+  }
+  if((oi.dates||[]).length){drawOi('__total__');sel.addEventListener('change',()=>drawOi(sel.value));}
+  else document.getElementById('oiChart').closest('.chart-card').innerHTML='<div class="sub" style="padding:20px">ไม่พบข้อมูล OI</div>';
+
+  // ---------- Ledger ----------
+  const lg=(d.ledger||{}).latest||{};
+  document.getElementById('lgDate').textContent=lg.date?('ข้อมูลวันที่ '+lg.date):'';
+  let lh='';
+  lh+=card('S50 Settle',fmt(lg.s50_settle,1),'ราคาปิด settle');
+  lh+=card('ATR14',fmt(lg.atr14,1),'ช่วงแกว่งเฉลี่ย 14 วัน');
+  lh+=card('EM Intraday',fmt(lg.em_intraday,1),`next gap ${fmt(lg.em_next_gap,1)}`);
+  lh+=card('Basis',fmt(lg.basis,2),'S50 - SET50',cls(lg.basis));
+  lh+=card('SET P/E',fmt(lg.set_pe,2),'เท่า');
+  lh+=card('ERP',fmt(lg.erp,2)+'%',`โซน ${lg.erp_zone||'--'} • 10Y ${fmt(lg.thai10y,2)}%`);
+  lh+=card('Center',fmt(lg.center,1),'ระดับอ้างอิง');
+  document.getElementById('lgCards').innerHTML=lh;
+
+  document.getElementById('foot').textContent=
+    `อัปเดตล่าสุด ${gen.toLocaleString('th-TH')}${d.aspen_ts?' • Aspen ts: '+d.aspen_ts:''} • อัปเดตอัตโนมัติทุกชั่วโมง จ.-ศ. 09:00-17:00`;
+}
+load();
+if('serviceWorker' in navigator){/* PWA แบบ manifest-only พอ — ไม่ใช้ SW เพื่อไม่ cache ข้อมูลเก่า */}
+</script>
+</body>
+</html>
