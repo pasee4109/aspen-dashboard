@@ -1,0 +1,40 @@
+{
+  "as_of": "2026-07-02",
+  "note": "3M relative performance vs SPY. แก้ไขไฟล์นี้เพื่ออัปเดตข้อมูล RRG",
+  "spy": {"1d": 0.04, "1m": -1.53, "3m": 14.15},
+  "quadrants": {
+    "leading": [
+      {"name": "Genomics", "pct": 25.1},
+      {"name": "Pharma", "pct": 12.4},
+      {"name": "Health Care", "pct": 12.1},
+      {"name": "Biotech", "pct": 12.1},
+      {"name": "Travel & Airlines", "pct": 10.9},
+      {"name": "Fintech", "pct": 10.8},
+      {"name": "Financials", "pct": 8.1},
+      {"name": "Cybersecurity", "pct": 7.1}
+    ],
+    "improving": [
+      {"name": "Defense"},
+      {"name": "Staples"},
+      {"name": "Utilities & Power"},
+      {"name": "Real Estate"},
+      {"name": "Cons Discret"},
+      {"name": "Comm Svcs"},
+      {"name": "Mag7"}
+    ],
+    "weakening": [
+      {"name": "Banks & Brokers"},
+      {"name": "Semi Equip & Memory"},
+      {"name": "Semiconductors"},
+      {"name": "Tech XLK"}
+    ],
+    "lagging": [
+      {"name": "Space & Drones", "pct": -30.9},
+      {"name": "Solar", "pct": -28.5},
+      {"name": "Quantum", "pct": -27.5},
+      {"name": "AI Infra & Data Center", "pct": -18.5},
+      {"name": "Nuclear & Uranium", "pct": -15.6},
+      {"name": "China Tech ADR", "pct": -14.8}
+    ]
+  }
+}

@@ -61,6 +61,22 @@ footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--border);color
 .stale{background:rgba(210,153,34,.12);color:var(--amber)}
 .dot-stale{background:var(--amber);animation:none}
 #err{display:none;background:rgba(248,81,73,.12);color:var(--red);padding:12px;border-radius:10px;margin-bottom:14px;font-size:13px}
+.rrg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rrg-q{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.rrg-q .rrg-h{font-size:13px;font-weight:700;margin-bottom:8px}
+.rrg-chips{display:flex;flex-wrap:wrap;gap:5px}
+.rrg-chip{padding:3px 8px;border-radius:8px;font-size:12px;font-weight:600}
+.rrg-leading{border-color:rgba(63,185,80,.4)}.rrg-leading .rrg-h{color:var(--green)}
+.rrg-leading .rrg-chip{background:rgba(63,185,80,.12);color:var(--green)}
+.rrg-improving{border-color:rgba(88,166,255,.4)}.rrg-improving .rrg-h{color:var(--blue)}
+.rrg-improving .rrg-chip{background:rgba(88,166,255,.12);color:var(--blue)}
+.rrg-weakening{border-color:rgba(210,153,34,.4)}.rrg-weakening .rrg-h{color:var(--amber)}
+.rrg-weakening .rrg-chip{background:rgba(210,153,34,.12);color:var(--amber)}
+.rrg-lagging{border-color:rgba(248,81,73,.4)}.rrg-lagging .rrg-h{color:var(--red)}
+.rrg-lagging .rrg-chip{background:rgba(248,81,73,.12);color:var(--red)}
+.spy-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.spy-pill{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px}
+@media(max-width:600px){.rrg-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -74,9 +90,9 @@ footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--border);color
 
 <section><h2>📊 ภาพรวม SET / S50</h2><div class="grid cards" id="cards"></div></section>
 
-<section><h2>🌡️ Climax Zone <span class="sub">(Week / Day / Hour — จากชุด VZO)</span></h2>
+<section><h2>🌡️ Climax Zone <span class="sub">(Week / Day / Hour — โมเมนตัมวอลุ่ม)</span></h2>
   <div class="grid cz-grid" id="czBox"></div>
-  <div class="sub" style="margin-top:8px">🔴 Buying Climax = ค่าเข้าโซนล่าง ≤3 (เน้นขาย) • 🟢 Selling Climax = ค่าเข้าโซนบน ≥97 (เน้นซื้อ) • ตัวเลข "ต้องวอลุ่มอีก" คำนวณจากสูตร VZO/StochVol ในไฟล์ aspen จริง</div>
+  <div class="sub" style="margin-top:8px">🔴 Buying Climax = ค่าเข้าโซนล่าง ≤3 (เน้นขาย) • 🟢 Selling Climax = ค่าเข้าโซนบน ≥97 (เน้นซื้อ) • ตัวเลข "ต้องวอลุ่มอีก" คำนวณจากสูตรโมเมนตัมวอลุ่มภายในระบบจริง</div>
 </section>
 
 <section><h2>📈 ดัชนี Intraday <span class="sub">(สะสมรายชั่วโมง)</span></h2>
@@ -103,6 +119,12 @@ footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--border);color
 
 <section><h2>📒 S50 Daily Metrics <span class="sub" id="lgDate"></span></h2>
   <div class="grid cards" id="lgCards"></div></section>
+
+<section id="secRotation" style="display:none"><h2>🌐 US Sector &amp; Theme Rotation <span class="sub" id="rrgDate"></span></h2>
+  <div class="spy-bar" id="spyBar"></div>
+  <div class="grid rrg-grid" id="rrgGrid"></div>
+  <div class="sub" style="margin-top:8px">RRG Quadrant — 🟢 Leading: แข็ง/นำ • 🔵 Improving: ฟื้น/risk-reward ดี • 🟡 Weakening: ทยอยถอย • 🔴 Lagging: อ่อน/หลีกเลี่ยง | อัปเดตข้อมูล: แก้ไฟล์ us_rotation.json</div>
+</section>
 
 <footer id="foot">Aspen Dashboard — สร้างจาก aspen 24hr.xlsm (READ-ONLY)</footer>
 
@@ -142,6 +164,22 @@ async function load(){
   h+=card('S50 %Chg 1W',pct(f.chg_1w),'เทียบสัปดาห์ก่อน',cls(f.chg_1w));
   if(d.mkt_sent)h+=card('Mkt Sentiment',d.mkt_sent,'จากชีต SET100',d.mkt_sent==='Y'?'up':'flat');
   if(d.total_flow!=null)h+=card('Flow รวม',fmt0(d.total_flow/1e6)+' M','ล้านบาท',cls(d.total_flow));
+  // Market State card (from InFlow Record B1:D1)
+  const ms=d.market_state||{};
+  if(ms.ratio!=null||ms.bias||ms.state){
+    const msInsight=(ratio,bias,state)=>{
+      const b=(bias||'').toLowerCase(),st=(state||'').toLowerCase();
+      if(b.includes('bull')&&ratio>=2)return'ตลาดแข็ง ขาขึ้นชัด';
+      if(b.includes('bear')&&ratio<=1)return'แรงขายหนัก ระวัง';
+      if(st.includes('sidewayup'))return'สะสมตัว รอแนวโน้ม';
+      if(st.includes('sidewaydn')||st.includes('sidewaydown'))return'ย่อตัว ระวังตาม';
+      if(st.includes('trend')&&b.includes('bull'))return'เทรนด์ขึ้น แนวโน้มบวก';
+      if(st.includes('trend')&&b.includes('bear'))return'เทรนด์ลง ระวังต่อเนื่อง';
+      return'ทรงตัว รอสัญญาณ';
+    };
+    const msClr=()=>{const b=(ms.bias||'').toLowerCase();return b.includes('bull')?'up':b.includes('bear')?'down':'flat';};
+    h+=card('ภาวะตลาด',`${ms.ratio!=null?ms.ratio:'-'} × | ${ms.bias||'-'}`,`${ms.state||'-'} — ${msInsight(ms.ratio,ms.bias,ms.state)}`,msClr());
+  }
   document.getElementById('cards').innerHTML=h;
 
   // ---------- Climax Zone ----------
@@ -279,6 +317,37 @@ async function load(){
     `อัปเดตล่าสุด ${gen.toLocaleString('th-TH')}${d.aspen_ts?' • Aspen ts: '+d.aspen_ts:''} • อัปเดตอัตโนมัติทุกชั่วโมง จ.-ศ. 09:00-17:00`;
 }
 load();
+async function loadRotation(){
+  let r;
+  try{
+    const res=await fetch('us_rotation.json?t='+Date.now());
+    if(!res.ok)return;
+    r=await res.json();
+  }catch(e){return;}
+  document.getElementById('secRotation').style.display='';
+  document.getElementById('rrgDate').textContent=r.as_of?'ณ '+r.as_of:'';
+  const spy=r.spy||{};
+  const sp=v=>v==null?'--':(v>=0?'+':'')+Number(v).toFixed(2)+'%';
+  const sc=v=>v==null?'flat':v>=0?'up':'down';
+  document.getElementById('spyBar').innerHTML=
+    '<span class="spy-pill">SPY 1D <b class="'+sc(spy['1d'])+'">'+sp(spy['1d'])+'</b></span>'+
+    '<span class="spy-pill">1M <b class="'+sc(spy['1m'])+'">'+sp(spy['1m'])+'</b></span>'+
+    '<span class="spy-pill">3M <b class="'+sc(spy['3m'])+'">'+sp(spy['3m'])+'</b></span>'+
+    '<span class="sub" style="margin-left:4px">vs benchmark (3M relative return)</span>';
+  const qmap=[
+    {key:'leading',icon:'🟢',label:'Leading — แข็งแกร่ง เป็นผู้นำ',cls:'rrg-leading'},
+    {key:'improving',icon:'🔵',label:'Improving — กำลังฟื้น risk/reward ดี',cls:'rrg-improving'},
+    {key:'weakening',icon:'🟡',label:'Weakening — ทยอยถอย ระวัง',cls:'rrg-weakening'},
+    {key:'lagging',icon:'🔴',label:'Lagging — อ่อนแอ หลีกเลี่ยง',cls:'rrg-lagging'},
+  ];
+  const qs=r.quadrants||{};
+  document.getElementById('rrgGrid').innerHTML=qmap.map(q=>{
+    const items=qs[q.key]||[];
+    const chips=items.map(s=>'<span class="rrg-chip">'+s.name+(s.pct!=null?' '+(s.pct>0?'+':'')+s.pct+'%':'')+'</span>').join('');
+    return '<div class="rrg-q '+q.cls+'"><div class="rrg-h">'+q.icon+' '+q.label+'</div><div class="rrg-chips">'+chips+'</div></div>';
+  }).join('');
+}
+loadRotation();
 if('serviceWorker' in navigator){/* PWA แบบ manifest-only พอ — ไม่ใช้ SW เพื่อไม่ cache ข้อมูลเก่า */}
 </script>
 </body>
