@@ -111,6 +111,20 @@ Shortcut ตัวอย่าง:
 - **`npm run build` fail** → เช็ค Node เวอร์ชัน (Claudian ใช้ modern
   tooling; แนะนำ Node LTS ล่าสุด)
 
+## Vault template (Second Brain)
+
+ถ้าอยากเริ่มจาก vault เปล่า มี starter template ให้ที่
+[`templates/second-brain-vault/`](../templates/second-brain-vault/README.md)
+— แนว LLM Wiki / Second Brain แบบ Karpathy พร้อม `CLAUDE.md` +
+starter skills (`capture`, `synthesize`) ที่ Claudian จะเห็นทันที
+
+Copy ไปเป็น vault ใหม่:
+
+```bash
+cp -r templates/second-brain-vault ~/Vaults/brain
+./scripts/install-claudian.sh ~/Vaults/brain
+```
+
 ## Links
 
 - Repo: https://github.com/YishenTu/claudian
