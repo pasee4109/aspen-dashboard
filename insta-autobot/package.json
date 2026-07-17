@@ -1,0 +1,19 @@
+{
+  "name": "insta-autobot",
+  "version": "1.0.0",
+  "description": "Comment-to-DM automation bot for Instagram — keyword triggers auto-reply DMs, with a config dashboard. Runs in mock mode out of the box, connects to the Instagram Graph API for production.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "license": "MIT"
+}

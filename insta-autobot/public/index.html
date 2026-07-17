@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>insta-autobot · Comment → DM</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">◎</span>
+        <div>
+          <h1>insta-autobot</h1>
+          <p class="tag">พิมพ์คีย์เวิร์ดใต้โพสต์ → บอทส่ง DM อัตโนมัติ</p>
+        </div>
+      </div>
+      <div class="status" id="status">
+        <span class="pill" id="modePill">…</span>
+        <span class="stat"><b id="statSent">0</b> DM ส่งแล้ว</span>
+        <span class="stat"><b id="statRules">0</b> rules</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Left column -->
+      <section class="col">
+        <div class="card sim">
+          <h2>🧪 ทดลองยิงคอมเมนต์</h2>
+          <p class="hint">
+            จำลองว่ามีคนคอมเมนต์ใต้โพสต์ ระบบจะจับคีย์เวิร์ดแล้วส่ง DM
+            (โหมด MOCK จะไม่ยิงจริง แค่บันทึก log)
+          </p>
+          <label>ชื่อผู้ใช้ (username)</label>
+          <input id="simUser" type="text" placeholder="demo_user" value="demo_user" />
+          <label>ข้อความคอมเมนต์</label>
+          <textarea id="simText" rows="2" placeholder="เช่น: สนใจค่ะ ขอลิงก์หน่อย"></textarea>
+          <button class="primary" id="simBtn">ส่งคอมเมนต์ทดสอบ</button>
+          <div id="simResult" class="sim-result" hidden></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>📜 Activity log</h2>
+            <button class="ghost small" id="clearLogs">ล้าง log</button>
+          </div>
+          <div class="log-wrap">
+            <table class="log">
+              <thead>
+                <tr><th>เวลา</th><th>@user</th><th>คอมเมนต์</th><th>ผล</th></tr>
+              </thead>
+              <tbody id="logBody">
+                <tr><td colspan="4" class="empty">ยังไม่มีกิจกรรม</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right column -->
+      <section class="col">
+        <div class="card">
+          <div class="card-head">
+            <h2>⚙️ Rules (คีย์เวิร์ด → DM)</h2>
+            <button class="primary small" id="addRule">+ เพิ่ม rule</button>
+          </div>
+          <div id="rulesList" class="rules"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Rule editor modal -->
+    <div class="modal" id="modal" hidden>
+      <div class="modal-box">
+        <div class="card-head">
+          <h2 id="modalTitle">เพิ่ม rule</h2>
+          <button class="ghost small" id="closeModal">✕</button>
+        </div>
+        <form id="ruleForm">
+          <input type="hidden" id="ruleId" />
+          <label>ชื่อ rule</label>
+          <input id="ruleName" type="text" placeholder="เช่น ส่งลิงก์คอร์ส" required />
+
+          <label>คีย์เวิร์ด (คั่นด้วยจุลภาค , )</label>
+          <input id="ruleKeywords" type="text" placeholder="link, ลิงก์, สนใจ" required />
+
+          <div class="row">
+            <div>
+              <label>วิธีจับคู่</label>
+              <select id="ruleMatchType">
+                <option value="contains">contains — มีคำนี้อยู่ในข้อความ</option>
+                <option value="word">word — ตรงทั้งคำ</option>
+                <option value="exact">exact — ตรงทั้งข้อความเป๊ะ</option>
+                <option value="regex">regex — นิพจน์ปกติ</option>
+              </select>
+            </div>
+            <div>
+              <label>ลำดับความสำคัญ</label>
+              <input id="rulePriority" type="number" value="0" />
+            </div>
+          </div>
+
+          <label class="check">
+            <input id="ruleCase" type="checkbox" /> สนใจตัวพิมพ์เล็ก/ใหญ่ (case sensitive)
+          </label>
+
+          <label>ข้อความ DM ที่จะส่ง <span class="hint-inline">ใช้ {{username}} ได้</span></label>
+          <textarea id="ruleDm" rows="3" placeholder="สวัสดีค่ะ @{{username}} 🙌 นี่คือลิงก์ 👉 https://…" required></textarea>
+
+          <label>ตอบคอมเมนต์สาธารณะ (ไม่บังคับ)</label>
+          <input id="rulePublic" type="text" placeholder="เช็ก DM นะคะ 💌" />
+
+          <label class="check">
+            <input id="ruleActive" type="checkbox" checked /> เปิดใช้งาน
+          </label>
+
+          <div id="formError" class="form-error" hidden></div>
+          <div class="actions">
+            <button type="button" class="ghost" id="cancelBtn">ยกเลิก</button>
+            <button type="submit" class="primary">บันทึก</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

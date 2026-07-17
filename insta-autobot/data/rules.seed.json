@@ -1,0 +1,35 @@
+[
+  {
+    "id": "rule_seed_link",
+    "name": "ส่งลิงก์เมื่อพิมพ์ \"link\"",
+    "keywords": ["link", "ลิงก์", "ลิ้ง"],
+    "matchType": "contains",
+    "caseSensitive": false,
+    "dmMessage": "สวัสดีค่ะ @{{username}} 🙌 ขอบคุณที่สนใจ! นี่คือลิงก์ที่ต้องการนะคะ 👉 https://example.com/link",
+    "publicReply": "เช็ก DM เลยนะคะ 💌",
+    "active": true,
+    "priority": 10
+  },
+  {
+    "id": "rule_seed_price",
+    "name": "ตอบราคาเมื่อพิมพ์ \"ราคา / price\"",
+    "keywords": ["ราคา", "price", "เท่าไหร่", "สนใจ"],
+    "matchType": "contains",
+    "caseSensitive": false,
+    "dmMessage": "สวัสดีค่ะ @{{username}} 😊 คอร์สนี้ราคา 990 บาท (จากปกติ 1,990) โปรถึงสิ้นเดือนนี้เท่านั้นนะคะ ทักมาสอบถามเพิ่มเติมได้เลยค่ะ",
+    "publicReply": "ส่งรายละเอียดทาง DM ให้แล้วนะคะ 🧡",
+    "active": true,
+    "priority": 5
+  },
+  {
+    "id": "rule_seed_promo",
+    "name": "โค้ดส่วนลด (regex: promo|โค้ด|ส่วนลด)",
+    "keywords": ["promo|โค้ด|ส่วนลด|code"],
+    "matchType": "regex",
+    "caseSensitive": false,
+    "dmMessage": "โค้ดส่วนลดพิเศษสำหรับ @{{username}} 🎁 ใช้โค้ด SAVE20 ลดทันที 20% ที่ https://example.com/shop",
+    "publicReply": "",
+    "active": true,
+    "priority": 1
+  }
+]
